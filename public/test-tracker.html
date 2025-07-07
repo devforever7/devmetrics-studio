@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DevMetrics Tracker Test</title>
+</head>
+<body>
+    <h1>DevMetrics Tracker Test</h1>
+    <button id="test-btn">Click to Track Event</button>
+    <button id="page-view-btn">Track Page View</button>
+    <div id="response"></div>
+
+    <script>
+        // Simple DevMetrics tracker simulation
+        class DevMetrics {
+            constructor(apiKey) {
+                this.apiKey = apiKey
+                this.apiUrl = '/api/events'
+                this.sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                this.userId = 'test_user_' + Math.random().toString(36).substr(2, 5)
+            }
+
+            async track(eventType, eventData = {}) {
+                try {
+                    const response = await fetch(this.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': this.apiKey
+                        },
+                        body: JSON.stringify({
+                            event_type: eventType,
+                            event_data: eventData,
+                            user_id: this.userId,
+                            session_id: this.sessionId
+                        })
+                    })
+
+                    const result = await response.json()
+                    console.log('Event tracked:', result)
+                    document.getElementById('response').innerHTML = 
+                        `<p>Event tracked: ${JSON.stringify(result)}</p>`
+                    return result
+                } catch (error) {
+                    console.error('Error tracking event:', error)
+                    document.getElementById('response').innerHTML = 
+                        `<p style="color: red;">Error: ${error}</p>`
+                }
+            }
+        }
+
+        // Initialize with your API key
+        const API_KEY = 'dm_your_api_key_here' // Replace with actual key
+        const metrics = new DevMetrics(API_KEY)
+
+        // Set up event listeners
+        document.getElementById('test-btn').addEventListener('click', () => {
+            metrics.track('button_click', {
+                button: 'test-btn',
+                page: 'test-tracker.html',
+                timestamp: Date.now()
+            })
+        })
+
+        document.getElementById('page-view-btn').addEventListener('click', () => {
+            metrics.track('page_view', {
+                page: window.location.pathname,
+                referrer: document.referrer,
+                title: document.title
+            })
+        })
+
+        // Auto-track page view on load
+        window.addEventListener('load', () => {
+            metrics.track('page_view', {
+                page: window.location.pathname,
+                referrer: document.referrer,
+                title: document.title,
+                auto: true
+            })
+        })
+    </script>
+</body>
+</html>
